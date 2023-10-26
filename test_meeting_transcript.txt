@@ -1,0 +1,41 @@
+[Smith, John {SCI}] 15:01:00
+Alright everyone, let's gather for today's discussion on the progress of our wooly mammoth cloning project.
+
+[Jones, Emily {RES}] 15:01:10
+Thank you, Dr. Smith. I'm excited to share the latest updates from the research team.
+
+[Brown, Alex {TECH}] 15:01:20
+And I've got some interesting technological updates that will be crucial for the next steps.
+
+[Wang, Li {GENE}] 15:01:30
+I've also been reviewing the gene editing techniques we'll need. Can't wait to dive in.
+
+[Smith, John {SCI}] 15:01:40
+Perfect. Emily, why don't you kick us off with where we are on DNA extraction?
+
+[Jones, Emily {RES}] 15:01:50
+Of course. We've successfully extracted DNA from three different mammoth specimens found in Siberia. The preservation was remarkable in two of them, providing us with sequences that are nearly 80% complete.
+
+[Brown, Alex {TECH}] 15:02:10
+I have to commend the extraction team. The conditions in Siberia were challenging, but they managed to get the samples in pristine condition.
+
+[Smith, John {SCI}] 15:02:20
+Fantastic. And how are we proceeding with the cloning process?
+
+[Wang, Li {GENE}] 15:02:30
+The gene editing techniques available to us, especially CRISPR, will play a pivotal role. Given that we have 80% of the mammoth DNA, we'll be looking to use Asian elephant DNA to fill in the gaps.
+
+[Jones, Emily {RES}] 15:02:45
+That's right. The Asian elephant is the closest living relative to the mammoth. By splicing the genes, we hope to create an embryo that's as close to the original mammoth as possible.
+
+[Brown, Alex {TECH}] 15:03:00
+The next challenge will be gestation. We're developing an artificial womb where the cloned embryo will grow. This womb mimics the conditions inside an elephant.
+
+[Smith, John {SCI}] 15:03:15
+That's groundbreaking! Any challenges or concerns we should be aware of?
+
+[Wang, Li {GENE}] 15:03:25
+Yes, there's always a risk of unintended mutations. We're doing our best to minimize them, but there are no guarantees.
+
+[Jones, Emily {RES}] 15:03:40
+We're also considering the ethical implications. While the science is fascinating, we need to be sure we're not creating an animal that will suffer or be unable to survive in current environments.

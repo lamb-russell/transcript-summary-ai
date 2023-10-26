@@ -1,9 +1,64 @@
 import unittest
 from unittest.mock import Mock, mock_open, patch
-from datetime import datetime
-import os
-import openai
+
+from tokenizer import chunk_text_by_tokens, count_tokens
 from zoom_transcript_summarizer import TranscriptHandler  # Assuming your script file is named "script_file.py"
+
+
+class TestChunkTextByTokens(unittest.TestCase):
+
+    def test_count_tokens(self):
+        text = "ChatGPT-4, isn't it great? I've heard it can process 25+ languages!"
+
+        self.assertEqual(22,count_tokens(text))
+
+    def test_chunking(self):
+        # Given test string
+        text = ("In the realm of scientific exploration, the idea of cloning dinosaurs has always stirred "
+                "a mix of awe and controversy. With advancements in biotechnology, the potential to extract "
+                "and utilize ancient DNA from well-preserved amber fossils is becoming increasingly feasible. "
+                "Scientists envision resurrecting these colossal creatures, offering humanity a chance to witness "
+                "the Mesozoic era's majestic beasts firsthand."
+                "\n\n"
+                "However, this pursuit is riddled with ethical and ecological questions. Would a cloned dinosaur, "
+                "born millions of years after its natural era, truly belong in our contemporary world? Modern "
+                "ecosystems are vastly different, and these creatures might find no niche or face unforeseen health "
+                "issues. There's also the moral quandary of creating life for mere spectacle. Would we be subjecting "
+                "these animals to a life of confinement, far from the wild landscapes they were adapted to?"
+                "\n\n"
+                "While the dream of seeing a Tyrannosaurus rex or a Brachiosaurus up close is thrilling, the "
+                "responsibility that comes with such power is immense. The technology is advancing, but the global "
+                "community must weigh the profound consequences. As we stand on the brink of making science fiction "
+                "a reality, intense debate ensures that we proceed with caution and respect for life.")
+
+        #print(text)
+
+        # Expected chunks based on the given max_tokens
+        expected_chunks = [
+            ("In the realm of scientific exploration, the idea of cloning dinosaurs has always stirred "
+             "a mix of awe and controversy. With advancements in biotechnology, the potential to extract "
+             "and utilize ancient DNA from well-preserved amber fossils is becoming increasingly feasible. "
+             "Scientists envision resurrecting these colossal creatures, offering humanity a chance to witness "
+             "the Mesozoic era's majestic beasts firsthand. However, this pursuit is riddled with ethical and "
+             "ecological questions."),  #84 tokens
+            ("Would a cloned dinosaur, born millions of years after its natural era, truly belong in our "
+             "contemporary world? Modern ecosystems are vastly different, and these creatures might find no "
+             "niche or face unforeseen health issues. There's also the moral quandary of creating life for mere "
+             "spectacle. Would we be subjecting these animals to a life of confinement, far from the wild "
+             "landscapes they were adapted to?"), #78 tokens
+            ("While the dream of seeing a Tyrannosaurus rex or a Brachiosaurus up close is thrilling, the "
+             "responsibility that comes with such power is immense. The technology is advancing, but the global "
+             "community must weigh the profound consequences. As we stand on the brink of making science fiction "
+             "a reality, intense debate ensures that we proceed with caution and respect for life.") #73 token
+        ]
+
+        # Call the function
+        result_chunks = chunk_text_by_tokens(text, max_tokens=100, model_name="gpt-3.5-turbo")
+
+        # print(result_chunks)
+        # Assert that the result matches the expected chunks
+        self.assertEqual(result_chunks, expected_chunks)
+
 
 class TestTranscriptHandler(unittest.TestCase):
 
@@ -60,7 +115,6 @@ class TestTranscriptHandler(unittest.TestCase):
         self.assertEqual(mock_expanduser.call_count, 2)
         mock_open.assert_called_once_with("test_transcript.txt", "r")
 
-
     @patch("os.path.expanduser")
     @patch("os.path.dirname")
     @patch("watchdog.events.FileSystemEvent")
@@ -87,6 +141,7 @@ class TestTranscriptHandler(unittest.TestCase):
         self.assertEqual(mock_dirname.call_count, 1)
         self.assertEqual(mock_basename.call_count, 1)
         self.assertEqual(mock_expanduser.call_count, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

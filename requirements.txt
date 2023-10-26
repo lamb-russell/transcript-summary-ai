@@ -1,2 +1,4 @@
 openai~=0.27.8
 watchdog~=3.0.0
+tokenizer~=3.4.3
+tiktoken~=0.5.1
