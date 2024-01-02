@@ -70,14 +70,15 @@ if openai.api_key is None:
 
 class TranscriptHandler(FileSystemEventHandler):
     """
-    This event handler watches for file system events sent via the watchdog library.
-    Whenever a file or directory is created in the watched folder, it will process the file (or files contained
-    in the directory) by chunking it into fragments, summarizing each fragment, then combining into a full
-    summary.
+    A custom handler for file system events. It processes new files (Zoom transcripts) by creating summaries.
     """
 
     def on_created(self, event):
-        """Watchdog runs this function when new file event is detected"""
+        """
+        Method called by watchdog when a file creation event is detected.
+        Args:
+            event: The file system event object containing information about the created file.
+        """
         logging.info(f"File System Event Detected: {event}")
 
         if event.is_directory:
@@ -89,7 +90,11 @@ class TranscriptHandler(FileSystemEventHandler):
             self.process_file(transcript_file)
 
     def process_file(self, transcript_file):
-        """high level function to handle file processing."""
+        """
+        Processes the given transcript file by summarizing its content.
+        Args:
+            transcript_file: The path to the transcript file to be processed.
+        """
         logging.info(f"New transcript found: {transcript_file}")
         transcript_content = self.read_transcript(transcript_file)
         full_summary = self.summarize_transcript(transcript_content, transcript_file)
@@ -97,7 +102,12 @@ class TranscriptHandler(FileSystemEventHandler):
 
     def summarize_transcript(self, transcript_content, transcript_file):
         """
-        main function to summarize text
+        Summarizes the given transcript content.
+        Args:
+            transcript_content: The content of the transcript to summarize.
+            transcript_file: The file path of the transcript for reference in the summary.
+        Returns:
+            str: The final executive summary of the transcript.
         """
         chunks = self.get_chunks(transcript_content) #separate text into chunks to accommodate model limits
 
@@ -152,6 +162,13 @@ class TranscriptHandler(FileSystemEventHandler):
         return full_summary
 
     def get_chunks(self, transcript_content):
+        """
+        Chunks the transcript content based on the specified mode (by tokens or words).
+        Args:
+            transcript_content: The content of the transcript to chunk.
+        Returns:
+            list: A list of text chunks.
+        """
         if SEPARATE_CHUNKS_BY_TOKENS:
             logging.info(f"Separating text by token count, max tokens {MAX_TOKENS}, model {MODEL_NAME} ")
             return chunk_text_by_tokens(transcript_content, MAX_TOKENS, MODEL_NAME)  # use token count to chunk
@@ -161,6 +178,13 @@ class TranscriptHandler(FileSystemEventHandler):
 
 
     def chunk_by_words(self, transcript_content):
+        """
+        Chunks the transcript content based on a word count threshold.
+        Args:
+            transcript_content: The content of the transcript to chunk.
+        Returns:
+            list: A list of text chunks.
+        """
         # Split transcript into chunks based on word count
         words_per_chunk = WORDS_PER_CHUNK
         words = transcript_content.split()
@@ -168,6 +192,13 @@ class TranscriptHandler(FileSystemEventHandler):
         return chunks
 
     def read_transcript(self, transcript_file):
+        """
+        Reads the content of a transcript file.
+        Args:
+            transcript_file: The path to the transcript file to be read.
+        Returns:
+            str: The content of the transcript file.
+        """
         # Read the transcript content
         with open(transcript_file, 'r') as f:
             transcript_content = f.read()
@@ -175,6 +206,12 @@ class TranscriptHandler(FileSystemEventHandler):
 
     # Function to write summary to a file
     def write_to_file(self, summary, filename):
+        """
+        Writes the summary to a file.
+        Args:
+            summary: The summary text to write.
+            filename: The name of the file to write the summary to.
+        """
         with open(filename, 'w') as f:
             f.write(summary)
         print(f"Summary written to {filename}")

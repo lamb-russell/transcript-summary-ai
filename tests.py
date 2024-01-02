@@ -1,12 +1,21 @@
+"""
+This test module contains unittests for the zoom_transcript_summarizer script. It tests various functionalities including
+token counting, text chunking, reading and writing transcripts, and the summarization process.
+"""
+
 import unittest
 from unittest.mock import Mock, mock_open, patch
 
 from tokenizer import chunk_text_by_tokens, count_tokens
+
+
 from zoom_transcript_summarizer import TranscriptHandler  # Assuming your script file is named "script_file.py"
 
 
 class TestChunkTextByTokens(unittest.TestCase):
-
+    """
+    Test cases for checking the functionality of the chunk_text_by_tokens function.
+    """
     def test_count_tokens(self):
         text = "ChatGPT-4, isn't it great? I've heard it can process 25+ languages!"
 
@@ -61,7 +70,9 @@ class TestChunkTextByTokens(unittest.TestCase):
 
 
 class TestTranscriptHandler(unittest.TestCase):
-
+    """
+    Test cases for checking the functionality of the TranscriptHandler class.
+    """
     def setUp(self):
         self.handler = TranscriptHandler()
 
