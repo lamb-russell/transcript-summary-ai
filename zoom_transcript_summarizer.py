@@ -1,8 +1,7 @@
 """
 This script monitors ZOOM_TRANSCRIPT_PATH for new zoom transcripts.  When a transcript is found, the text is
-divided into chunks of length WORDS_PER_CHUNK or MAX_TOKENS and sent to Open AI for summarization.
-Whether tokens or words are used to divide up the text is determined by SEPARATE_CHUNKS_BY_TOKENS.  The model used is
-determined by MODEL_NAME. When summarizing, the prompt used for the chatbot's role is defined in
+divided into chunks of length MAX_TOKENS and sent to Open AI for summarization.
+The model used is determined by MODEL_NAME. When summarizing, the prompt used for the chatbot's role is defined in
 DETAILED_SUMMARY_ROLE.
 
 The results of the summary are saved into a directory in SAVE_TO_PATH.
@@ -29,9 +28,7 @@ DETAILED_SUMMARY_ROLE = """You are a professional assistant tasked with summariz
     The summaries are intended for my boss, so they should be concise, clear, and cover all essential points discussed, 
     including decisions, action items, and key takeaways. Focus on providing a clear understanding of the meeting's 
     content and outcomes, as if explaining to a senior executive."""
-WORDS_PER_CHUNK = 2000
 MAX_TOKENS = 125000  # model gpt-4-1106-preview has context window of 128k tokens
-SEPARATE_CHUNKS_BY_TOKENS = True  # when True, separate text by token count
 MODEL_NAME = "gpt-4-1106-preview"   # options include: gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k
 SAVE_TO_PATH = "~/Documents/Zoom_Summaries"  # this is where summaries will be saved to local machine
 ZOOM_TRANSCRIPT_PATH = "~/Documents/Zoom"  # this is directory where Zoom saves meeting transcriptions
