@@ -1,6 +1,13 @@
 import tiktoken
 import re
 
+
+def count_words(text_content):
+    """
+    Return the number of words in string
+    """
+    return len(text_content.split())
+
 def chunk_text_by_tokens(text, max_tokens=2048, model_name="gpt-3.5-turbo"):
     """
     Chunks the given text into smaller parts based on token count.

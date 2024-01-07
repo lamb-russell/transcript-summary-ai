@@ -5,12 +5,7 @@ Whether tokens or words are used to divide up the text is determined by SEPARATE
 determined by MODEL_NAME. When summarizing, the prompt used for the chatbot's role is defined in
 DETAILED_SUMMARY_ROLE.
 
-After the transcript is summarized, another call to OpenAI is made to summarize the summaries into
-an executive summary.  The prompt used is in EXECUTIVE_SUMMARY_ROLE.
-
-Model used for summarizing determined by SUMMARY_MODEL_NAME.
-
-The results of the combined summaries are saved into a directory in SAVE_TO_PATH.
+The results of the summary are saved into a directory in SAVE_TO_PATH.
 
 OPENAI_API_KEY environment variable should contain your API key.
 
@@ -27,32 +22,17 @@ from datetime import datetime
 import openai
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-from tokenizer import chunk_text_by_tokens, count_tokens
+from tokenizer import chunk_text_by_tokens, count_tokens, count_words
 
 # USER CONFIGURATION
-DETAILED_SUMMARY_ROLE = """You are a professional assistant that summarizes portions of Zoom transcripts as detailed 
-        bullet points.  Your response will be combined with others to generate a summary of the full meeting, 
-        so they should only contain bullet points and lots of detail.  
-        Each bullet point should include all important details and be as accurate as possible.  
-        Important details include financials, metrics, questions, responses, agreements, proposed actions, follow ups, 
-        names, and dates.  Include names of those who spoke about a topic if possible.  
-        Include as much context as needed in the bullet point to understand what's being discussed and
-        actions required.  
-        """
-EXECUTIVE_SUMMARY_ROLE = """You are a professional assistant that creates executive summaries of meeting transcripts.  
-        You will produce a concise executive summary in bullet points with all of the important information from the 
-        call, such as names, actions, and dates. 
-        Be as accurate as possible.
-        Summary should contain the following:
-        1. Participants - people who speak in the call
-        2. Action items - names and responsibilities of people asked to do something during the call.  
-        3. Key Takeaways - a few bullet points that convey the essence of the call. 
-        """
+DETAILED_SUMMARY_ROLE = """You are a professional assistant tasked with summarizing Zoom meeting transcripts. 
+    The summaries are intended for my boss, so they should be concise, clear, and cover all essential points discussed, 
+    including decisions, action items, and key takeaways. Focus on providing a clear understanding of the meeting's 
+    content and outcomes, as if explaining to a senior executive."""
 WORDS_PER_CHUNK = 2000
-MAX_TOKENS = 15000
-SEPARATE_CHUNKS_BY_TOKENS= True # when True, separate text by token count
-MODEL_NAME = "gpt-3.5-turbo-16k"   # options include: gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k
-SUMMARY_MODEL_NAME = "gpt-4"
+MAX_TOKENS = 125000  # model gpt-4-1106-preview has context window of 128k tokens
+SEPARATE_CHUNKS_BY_TOKENS = True  # when True, separate text by token count
+MODEL_NAME = "gpt-4-1106-preview"   # options include: gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k
 SAVE_TO_PATH = "~/Documents/Zoom_Summaries"  # this is where summaries will be saved to local machine
 ZOOM_TRANSCRIPT_PATH = "~/Documents/Zoom"  # this is directory where Zoom saves meeting transcriptions
 
@@ -60,17 +40,16 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-
 # Replace with your actual OpenAI API key
 openai.api_key = os.environ.get("OPENAI_API_KEY", None)
 if openai.api_key is None:
     raise KeyError("Open AI key not found in environment variable")
 
-
-
 class TranscriptHandler(FileSystemEventHandler):
     """
     A custom handler for file system events. It processes new files (Zoom transcripts) by creating summaries.
+    The summaries are designed to be concise and clear, suitable for a senior executive audience,
+    focusing on essential points, decisions, action items, and key takeaways.
     """
 
     def on_created(self, event):
@@ -81,115 +60,57 @@ class TranscriptHandler(FileSystemEventHandler):
         """
         logging.info(f"File System Event Detected: {event}")
 
-        if event.is_directory:
-            logging.info("Directory event")
-            directory_path = event.src_path
-
-        else:
+        if not event.is_directory:
             transcript_file = event.src_path
             self.process_file(transcript_file)
 
     def process_file(self, transcript_file):
         """
-        Processes the given transcript file by summarizing its content.
+        Processes the given transcript file by summarizing its content and then formatting and saving the summary.
         Args:
             transcript_file: The path to the transcript file to be processed.
         """
         logging.info(f"New transcript found: {transcript_file}")
         transcript_content = self.read_transcript(transcript_file)
-        full_summary = self.summarize_transcript(transcript_content, transcript_file)
+        full_summary = self.summarize_transcript(transcript_content)
+        self.format_and_save_summary(full_summary, transcript_file)
 
-
-    def summarize_transcript(self, transcript_content, transcript_file):
+    def summarize_transcript(self, transcript_content):
         """
-        Summarizes the given transcript content.
+        Generates a summary of the transcript content.
         Args:
             transcript_content: The content of the transcript to summarize.
-            transcript_file: The file path of the transcript for reference in the summary.
         Returns:
-            str: The final executive summary of the transcript.
+            str: The comprehensive summary of the transcript.
         """
-        chunks = self.get_chunks(transcript_content) #separate text into chunks to accommodate model limits
-
-        summaries = []
+        logging.info("Summarizing transcript")
         role_chunk = DETAILED_SUMMARY_ROLE
-        for chunk in chunks:  # turn each chunk into bullet points
-            logging.info(f"sending chunk to summarize.  words: {len(chunk.split())}, tokens: {count_tokens(chunk)}")
-            # Send chunk to OpenAI for summarization using the ChatCompletion endpoint and "gpt-3.5-turbo-16k" model
-            response = openai.ChatCompletion.create(
-                model=MODEL_NAME,
-                messages=[
-                    {"role": "system", "content": role_chunk},
-                    {"role": "user", "content": chunk},
-                ]
-            )
-            summary = response.choices[0].message['content'].strip()
-            logging.info(f"summary word count: {len(summary.split())}, tokens: {count_tokens(summary)}")
-            summaries.append(summary)
-
-        combined_summaries = "\n".join(summaries)  # combine all bullet points for further summarization
-        logging.info(f"all chunks summarized. word: {len(combined_summaries.split())}"
-                     f", chars:{len(combined_summaries)}, tokens {count_tokens(combined_summaries)}")
-
-        # create executive summary
-        role_full = EXECUTIVE_SUMMARY_ROLE
         response = openai.ChatCompletion.create(
-            model=SUMMARY_MODEL_NAME,  # this model is used for summarizing the bullet points
+            model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": role_full},
-                {"role": "user", "content": combined_summaries},
+                {"role": "system", "content": role_chunk},
+                {"role": "user", "content": transcript_content},
             ]
         )
-        full_summary = response.choices[0].message['content'].strip()  # get the summary from model
-        logging.info(f"exec summary complete.  full length: {len(full_summary)}, "
-                     f"word count: {len(full_summary.split())}, tokens {count_tokens(full_summary)}")
+        logging.info(f"transcript {count_tokens(transcript_content) } tokens, {count_words(transcript_content)} words")
+        return response.choices[0].message['content'].strip()
 
-        # format summary
-        formatted_date = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        summary_header = f"{formatted_date} - Summary of file: {transcript_file} \n"
-        content = f"{summary_header}\nExecutive summary:\n {full_summary} \nDetailed Summary:\n {combined_summaries}\n"
-        print(f"prepare to output content:\n{content}")
-
-        # write to file
+    def format_and_save_summary(self, summary, transcript_file):
+        """
+        Formats the summary and saves it to a file.
+        Args:
+            summary: The summary text to be formatted and saved.
+            transcript_file: The path to the original transcript file for reference.
+        """
+        logging.info(f"summary size {count_tokens(summary)} tokens, {count_words(summary)} words")
+        formatted_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         last_directory = os.path.basename(
             os.path.dirname(transcript_file))  # last directory of file path is meeting name
-        suffix=datetime.now().strftime('%Y%m%d%H%M%S')
-        filename=f"{last_directory}_{suffix}" # append date generated to meeting name
-        logging.info(f"filename: {filename}")
-        save_to_path = os.path.expanduser(os.path.join(SAVE_TO_PATH, filename))
-        logging.info(f"saving to path {save_to_path}")
-        self.write_to_file(content, save_to_path)
-        return full_summary
-
-    def get_chunks(self, transcript_content):
-        """
-        Chunks the transcript content based on the specified mode (by tokens or words).
-        Args:
-            transcript_content: The content of the transcript to chunk.
-        Returns:
-            list: A list of text chunks.
-        """
-        if SEPARATE_CHUNKS_BY_TOKENS:
-            logging.info(f"Separating text by token count, max tokens {MAX_TOKENS}, model {MODEL_NAME} ")
-            return chunk_text_by_tokens(transcript_content, MAX_TOKENS, MODEL_NAME)  # use token count to chunk
-        else:
-            logging.info(f"Separating text by words, max words {WORDS_PER_CHUNK} ")
-            return self.chunk_by_words(transcript_content)  # use words count to chunk
-
-
-    def chunk_by_words(self, transcript_content):
-        """
-        Chunks the transcript content based on a word count threshold.
-        Args:
-            transcript_content: The content of the transcript to chunk.
-        Returns:
-            list: A list of text chunks.
-        """
-        # Split transcript into chunks based on word count
-        words_per_chunk = WORDS_PER_CHUNK
-        words = transcript_content.split()
-        chunks = [" ".join(words[i:i + words_per_chunk]) for i in range(0, len(words), words_per_chunk)]
-        return chunks
+        filename = f"{last_directory}_{formatted_date}.txt"
+        save_to_path = os.path.join(os.path.expanduser(SAVE_TO_PATH), filename)
+        with open(save_to_path, 'w') as file:
+            file.write(summary)
+        logging.info(f"Summary written to {save_to_path}")
 
     def read_transcript(self, transcript_file):
         """
@@ -199,22 +120,8 @@ class TranscriptHandler(FileSystemEventHandler):
         Returns:
             str: The content of the transcript file.
         """
-        # Read the transcript content
-        with open(transcript_file, 'r') as f:
-            transcript_content = f.read()
-        return transcript_content
-
-    # Function to write summary to a file
-    def write_to_file(self, summary, filename):
-        """
-        Writes the summary to a file.
-        Args:
-            summary: The summary text to write.
-            filename: The name of the file to write the summary to.
-        """
-        with open(filename, 'w') as f:
-            f.write(summary)
-        print(f"Summary written to {filename}")
+        with open(transcript_file, 'r') as file:
+            return file.read()
 
 
 if __name__ == "__main__":
