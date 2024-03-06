@@ -163,3 +163,4 @@ cython_debug/
 .idea/transcript-summary-ai.iml
 .idea/vcs.xml
 .idea/*
+/token.pickle

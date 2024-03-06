@@ -6,6 +6,7 @@ token counting, text chunking, reading and writing transcripts, and the summariz
 import unittest
 from unittest.mock import Mock, mock_open, patch
 
+from summarize import summarize_transcript
 from tokenizer import chunk_text_by_tokens, count_tokens
 
 
@@ -99,7 +100,7 @@ class TestTranscriptHandler(unittest.TestCase):
             Mock(choices=[Mock(message={"content": "Summary 2"})])
         ]
         mock_transcript = "Long transcript content..."
-        result = self.handler.summarize_transcript(mock_transcript, "test_transcript.txt")
+        result = summarize_transcript(mock_transcript, "test_transcript.txt")
         expected_combined_summary = "Summary 1\nSummary 2"
         self.assertEqual(result, expected_combined_summary)
 
