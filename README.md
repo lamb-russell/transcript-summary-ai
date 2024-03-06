@@ -1,53 +1,99 @@
-
 # Zoom Transcript Summarizer
 
-The Zoom Transcript Summarizer is a Python application designed to automatically monitor a specified directory for new Zoom meeting transcripts and summarize them. It utilizes the OpenAI GPT models to create detailed and executive summaries of the meeting transcripts.
+The Zoom Transcript Summarizer is a Python-based tool designed to automatically process and summarize Zoom meeting transcripts. It monitors a designated directory for new transcript files, summarizes the content using OpenAI's GPT models, and saves the summaries both locally and on Google Docs for easy access and sharing.
 
 ## Features
 
-- **Transcript Monitoring**: Watches a specified directory for new transcript files.
-- **Automatic Summarization**: Splits transcripts into smaller chunks and summarizes them using OpenAI's GPT models.
-- **Dual Summaries**: Generates both a detailed summary (with bullet points) and an executive summary.
-- **Local Saving**: Summaries are saved to a specified local directory.
+- **Automatic Monitoring**: Watches for new transcript files in a specified directory.
+- **Summarization with AI**: Utilizes OpenAI GPT models for intelligent content summarization.
+- **Integration with Google Docs**: Automatically saves summaries to Google Docs.
+- **Local Backup**: Provides local saving of summaries for offline access.
 
-## Components
+## Getting Started
 
-1. **zoom_summarizer.py**: The main script that monitors for new transcripts and processes them.
-2. **tokenizer.py**: A utility module for text chunking based on token count, crucial for handling large transcripts.
-3. **test.py**: Contains unit tests to ensure the reliability of the summarizer and tokenizer functionalities.
+### Prerequisites
 
-## tokenizer.py
+Ensure Python 3.x is installed on your system and you have a Google Cloud account ready for setup.
 
-The `tokenizer.py` module provides functions for dividing text into manageable chunks based on token counts, which is essential for processing large texts with token-limited models.
+### Installation and Setup
 
-### Functions
+1. **Clone the Repository**
 
-- `chunk_text_by_tokens(text, max_tokens, model_name)`: Splits the text into chunks without exceeding the specified maximum token count, ideally at sentence boundaries.
-- `count_tokens(text_string, model_name)`: Counts the number of tokens in a given string based on the specified model's encoding.
+   ```sh
+   git clone https://github.com/yourusername/zoom-transcript-summarizer.git
+   cd zoom-transcript-summarizer
+   ```
 
-## Installation
+2. **Install Dependencies**
 
-1. Clone the repository.
-2. Ensure Python 3.x is installed.
-3. Install dependencies: `pip install -r requirements.txt` (Note: requirements.txt should list necessary libraries like `watchdog`, `openai`, and `tiktoken`).
+   ```sh
+   pip install -r requirements.txt
+   ```
 
-## Configuration
+3. **Configure Google Cloud Project**
 
-Set the following parameters in `zoom_summarizer.py`:
+   - Create a new project in the [Google Cloud Console](https://console.cloud.google.com/).
+   - Enable the Google Docs API and Google Drive API from the Library section.
+   - Set up the OAuth consent screen and add your Google user email as a test user.
+   - Create OAuth 2.0 Client IDs in the Credentials section and download the JSON file.
 
-- `DETAILED_SUMMARY_ROLE` and `EXECUTIVE_SUMMARY_ROLE`: Define the prompts for detailed and executive summaries.
-- `WORDS_PER_CHUNK`, `MAX_TOKENS`, `MODEL_NAME`, `SUMMARY_MODEL_NAME`: Set token limits and model names.
-- `SAVE_TO_PATH`, `ZOOM_TRANSCRIPT_PATH`: Specify paths for saving summaries and locating Zoom transcripts.
+4. **Set Environment Variables**
 
-## Usage
+   Set `GOOGLE_DOCS_SUMMARIZER_JSON` with the contents of the downloaded JSON file:
 
-1. Run `python zoom_summarizer.py` to start the summarizer.
-2. The script will monitor the specified Zoom transcript directory and process new files as they appear.
+   ```sh
+   export GOOGLE_DOCS_SUMMARIZER_JSON='<JSON_CONTENTS>'
+   ```
+
+   Set your OpenAI API key:
+
+   ```sh
+   export OPENAI_API_KEY='your_openai_api_key_here'
+   ```
+
+### Running the Application
+
+1. Update `ZOOM_TRANSCRIPT_PATH` in `zoom_transcript_summarizer.py` to your Zoom transcripts directory.
+2. Run the summarizer:
+
+   ```sh
+   python zoom_transcript_summarizer.py
+   ```
+
+## User Guide
+
+- **Local Summaries**: Find the summaries saved locally in the path specified by `SAVE_TO_PATH`.
+- **Google Docs Summaries**: Access the summaries saved in Google Docs titled with the format `MeetingName_YYYY-MM-DD HH:MM:SS`.
+
+## Development
+
+This project consists of several modules working together to monitor, process, and summarize Zoom transcripts. Key components include:
+
+- `zoom_transcript_summarizer.py`: The main script that initiates monitoring and summarization.
+- `tokenizer.py`: Utility for text tokenization.
+- `summarize.py`: Handles the summarization logic.
+- `save_summary.py`: Responsible for saving summaries locally and to Google Docs.
+- `google_auth.py`: Manages Google API authentication.
+- `tests.py`: Contains unit tests to ensure functionality.
 
 ## Testing
 
-Run `python -m unittest test.py` to execute the test suite and verify the functionality.
+To run unit tests and verify component functionality:
 
----
+```sh
+python -m unittest tests.py
+```
 
-*Note*: Ensure that the OpenAI API key is correctly set in the environment variables for the script to function properly.
+## Important Note
+
+This tool is designed for educational and professional use. Always adhere to OpenAI's usage policies and Google's API terms of service. Ensure the proper handling of sensitive and private meeting content.
+
+## For New Users
+
+To use this application with your own Google credentials:
+
+- Follow the setup instructions to create a Google Cloud Project and enable necessary APIs.
+- Obtain OAuth 2.0 credentials and configure the required environment variables.
+- Run the application as instructed, ensuring your Zoom transcripts directory is correctly set.
+
+**Note**: In test mode, application usage is limited to users specified as test users in your Google Cloud project. Consider moving to production mode for broader use, following Google's verification processes.
