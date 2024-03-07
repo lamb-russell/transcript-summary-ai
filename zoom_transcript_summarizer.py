@@ -21,6 +21,7 @@ from watchdog.observers import Observer
 
 from save_summary import save_google_doc, format_and_save_summary
 from summarize import summarize_transcript
+from claude_summarizer import summarize_transcript_with_claude
 
 from googleapiclient.discovery import build
 import os
@@ -33,6 +34,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
+USE_CLAUDE=True # flag to selet if we use claude or openai
 
 class TranscriptHandler(FileSystemEventHandler):
     """
@@ -66,7 +68,7 @@ class TranscriptHandler(FileSystemEventHandler):
         """
         logging.info(f"New transcript found: {transcript_file}")
         transcript_content = self.read_transcript(transcript_file)
-        full_summary = summarize_transcript(transcript_content)
+        full_summary = summarize_transcript_with_claude(transcript_content) if USE_CLAUDE else summarize_transcript(transcript_content)
         format_and_save_summary(full_summary, transcript_file)
         self.format_and_save_to_google_docs(full_summary,transcript_file)
 
