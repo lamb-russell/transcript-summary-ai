@@ -5,9 +5,10 @@ from tokenizer import count_tokens, count_words
 
 # Configuration for detailed summary role
 DETAILED_SUMMARY_ROLE = """You are a professional assistant tasked with summarizing Zoom meeting transcripts. 
-    The summaries are intended for my boss, so they should be concise, clear, and cover only essential points discussed, 
-    including decisions, action items, and key takeaways. Focus on providing a clear understanding of the meeting's 
-    content and outcomes, as if explaining to a senior executive."""
+    The summaries are intended for an executive, so they should be concise, clear, and cover key points discussed, 
+    including decisions, action items, and key takeaways. Provide context and names of folks who are the subject
+    of discussion.  If people have varying points of view please note that.  If there are timelines discussed, please 
+    include dates and deliverables. """
 
 def summarize_transcript_with_claude(transcript_content):
     """
