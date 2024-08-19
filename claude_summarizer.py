@@ -3,6 +3,8 @@ import os
 from anthropic import Anthropic
 from tokenizer import count_tokens, count_words
 
+ANTHROPIC_MODEL= "claude-3-5-sonnet-20240620"  # FOR MORE https://docs.anthropic.com/en/docs/about-claude/models
+
 # Configuration for detailed summary role
 DETAILED_SUMMARY_ROLE = """You are a professional assistant tasked with summarizing Zoom meeting transcripts. 
     The summaries are intended for an executive, so they should be concise, clear, and cover key points discussed, 
@@ -43,7 +45,7 @@ def summarize_transcript_with_claude(transcript_content):
                 "content": message
             }
         ],
-        model="claude-2.1",  # Specify the correct model identifier (claude-instant-1.2, claude-2.1)
+        model=ANTHROPIC_MODEL,  # Specify the correct model identifier (claude-instant-1.2, claude-2.1)
         # stream=True
     )
 
